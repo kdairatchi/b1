@@ -1,0 +1,357 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# -----------------------------------------------------------------------------------------------
+# PATH and Environment Variables Setup
+# -----------------------------------------------------------------------------------------------
+export PATH="/usr/local/opt/openjdk/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+export PATH="$PATH:$HOME/tools/.pdtm/go/bin"
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="$HOME/tools/Scripts/Reconnaissance:$HOME/tools/Scripts/Vulnerability_Scanners:$PATH"
+export PATH="$HOME/tools/payloads:$PATH"
+export DISPLAY=:0
+export DISPLAY=localhost:0
+export PATH="/opt/X11/bin:$PATH"
+
+# Pyenv initialization
+if command -v pyenv 1>/dev/null 2>&1; then
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+fi
+
+# -----------------------------------------------------------------------------------------------
+# Dynamic Network Information Variables
+# -----------------------------------------------------------------------------------------------
+dns=$(ip r | grep dhcp | awk '{print $3}')
+extip=$(curl -s http://ifconfig.me)
+ip=$(ifconfig | grep 'inet ' | awk 'NR==1{print $2}')
+mac=$(ifconfig | grep ether | awk '{print $2}')
+
+# -----------------------------------------------------------------------------------------------
+# General Aliases and Navigation Shortcuts
+# -----------------------------------------------------------------------------------------------
+alias c='clear'
+alias cl='clear ; ls -lh --color=auto'
+alias cla='clear ; ls -lah --color=auto'
+alias h='cd $HOME/Desktop/ ; clear'
+alias r='cd $HOME ; clear'
+alias date='date +"%a %b %d, %Y - %r %Z"'
+alias e='exit'
+
+# Quick Network Information
+alias n='echo; echo -n "External IP:  $extip"; echo; echo -n "Internal IP:  $ip"; echo; echo -n "MAC address:  $mac"; echo; echo -n "DNS:          $dns"; echo; echo; netstat -ant; echo; ping -c3 8.8.8.8'
+
+# Sort Unique IP Addresses
+alias sip='sort -n -u -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4'
+
+# SSH with XAuth
+alias ssh='ssh -o "XAuthLocation=/opt/X11/bin/xauth"'
+
+# Python Web Servers
+alias web='echo 127.0.0.1; python3 -m http.server 80'
+alias web2='echo 127.0.0.1; python3 -m http.server 8000'
+
+# -----------------------------------------------------------------------------------------------
+# Bounty Hunting Tools and Scanning Aliases
+# -----------------------------------------------------------------------------------------------
+# Burp Suite
+alias burp='/Applications/Burp Suite Professional.app/Contents/MacOS/JavaApplicationStub'
+
+# Recon Tools
+alias sublist3r='cd $HOME/tools/Scripts/Reconnaissance/Sublist3r && python3 sublist3r.py'
+alias amass='amass'
+alias assetfinder='cd $HOME/tools/Scripts/Reconnaissance && assetfinder'
+alias quickrecon='subfinder -d $1 | httpx -title -status-code'
+# Subfinder and HTTPx Combined for Live Hosts
+alias httpx-toolkit='httpx -silent -timeout 10 -threads 50 -title -status-code'
+alias httpxtoolkit='httpx -timeout 10 -threads 50'
+
+# Automated Recon Function
+function all_recon() {
+    target=$1
+    echo "Running subfinder, assetfinder, and amass for $target..."
+    subfinder -d "$target" | httpx -silent -o subfinder_live_$target.txt
+    assetfinder --subs-only "$target" | httpx -silent -o assetfinder_live_$target.txt
+    amass enum -d "$target" | httpx -silent -o amass_live_$target.txt
+    cat subfinder_live_$target.txt assetfinder_live_$target.txt amass_live_$target.txt | sort -u > combined_live_$target.txt
+    echo "Combined live subdomains saved to combined_live_$target.txt"
+}
+
+alias subfinder_run='subfinder -d $1 -silent > subfinder_output.txt'
+alias subfinder_live='subfinder -d $1 | httpx -silent -title -status-code'
+
+# Spyhunt and Recon Tools Aliases
+# Main Spyhunt Alias
+alias spyhunt="python3 /Users/anom/tools/Scripts/myautobb/spyhunt/spyhunt.py"
+
+# Subdomain Enumeration
+alias spyhunt_subdomains="spyhunt -s"
+
+# Shodan Subdomain Enumeration with API
+alias spyhunt_shodan_subs="spyhunt -s --shodan"
+
+# DNS Record Scanning
+alias spyhunt_dns="spyhunt -d"
+
+# Favicon Hash Analysis
+alias spyhunt_favicon="spyhunt -fi"
+
+# Wayback URL Crawling
+alias spyhunt_wayback="spyhunt -wc"
+
+# Broken Links Detection
+alias spyhunt_broken_links="spyhunt -b"
+
+# CORS Misconfiguration Scanning
+alias spyhunt_cors="spyhunt -co"
+
+# Host Header Injection Scanning
+alias spyhunt_host_header="spyhunt -hh"
+
+# Directory Brute Force
+alias spyhunt_dir_brute="spyhunt --directorybrute"
+
+# Subnet Scanning
+alias spyhunt_subnet="spyhunt --cidr_notation"
+
+# Directory Traversal Testing
+alias spyhunt_dir_traversal="spyhunt -ph"
+
+# SQL Injection Testing
+alias spyhunt_sqli="spyhunt -sqli"
+
+# XSS Testing
+alias spyhunt_xss="spyhunt -xss"
+
+# JavaScript Scanning
+alias spyhunt_js="spyhunt -javascript"
+
+# JavaScript Endpoint Fuzzing
+alias spyhunt_js_endpoints="spyhunt -je"
+
+# Parameter Bruteforcing
+alias spyhunt_param_brute="spyhunt -pf"
+
+# Open Redirect Scanning
+alias spyhunt_open_redirect="spyhunt -or"
+
+# Password Breach Checking
+alias spyhunt_hibp="spyhunt -hibp"
+
+# Subdomain Takeover Testing
+alias spyhunt_takeover="spyhunt -st"
+
+# Auto Recon
+alias spyhunt_auto_recon="spyhunt -ar"
+
+# JSON Web Token Analysis
+alias spyhunt_jwt="spyhunt -jwt"
+
+# JSON Web Token Modification
+alias spyhunt_jwt_mod="spyhunt -jwt-modify"
+
+# AWS S3 Bucket Scanning
+alias spyhunt_s3_scan="spyhunt --s3-scan"
+
+# Heap Dump Analysis
+alias spyhunt_heap="spyhunt --heapdump"
+
+
+# Vulnerability Scanning
+alias nuclei='nuclei -update-templates && nuclei'
+alias nuclei_scan='nuclei -t /Users/anom/nuclei-templates -u $1 -o nuclei_$1.txt'
+alias portscan='nmap -sC -sV -oN nmap_scan_$1.txt'
+alias sqlhunt="sqlmap --batch --level=5 --risk=3 -u $1"
+
+# LFI Fuzzing
+alias fuzz_lfi="cat parameters.txt | qsreplace FUZZ | while read url; do ffuf -u $url -w $HOME/SecLists/Fuzzing/LFI-payloads.txt -mr 'root:'; done"
+
+# JavaScript Analysis
+alias findjs='echo $1 | gau | grep "\.js$" > js_files.txt && while read js_url; do python3 /Users/anom/tools/Scripts/SecretFinder/SecretFinder.py -i $js_url -o cli >> secrets.txt; done'
+
+# Create a New Bug Bounty Project Folder Structure
+function create_project() {
+    project_name=$1
+    mkdir -p "$HOME/BugBounty/$project_name"/{recon,scans,payloads,reports}
+    echo "Project $project_name created with standard folder structure."
+}
+
+# Combined Vulnerability Scan
+function vulnscan() {
+    domain=$1
+    echo "Running combined vulnerability scan for $domain..."
+    subfinder -d "$domain" | httpx -silent -o live_hosts_$domain.txt
+    nuclei -t $HOME/nuclei-templates -l live_hosts_$domain.txt -o nuclei_$domain.txt
+    echo "Scans completed. Results saved in nuclei_$domain.txt."
+}
+
+# Directory Brute Forcing
+alias dirbrute="gobuster dir -u $1 -w $HOME/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt -t 50"
+alias bruteforce_dir="dirsearch -l live_hosts.txt -w $HOME/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt -t 50 -o directory_results.txt"
+
+# XSS Testing
+alias xsshunt="cat $1 | dalfox pipe --no-color --skip-bav --mass --output dalfox_$1.txt"
+alias xsslab='cd /Users/anom/tools/Scripts/XSS-Filter-Bypass-Lab && python3 run_lab.py'
+
+# JWT Analysis
+alias jwt_tool='python3 /Users/anom/tools/Scripts/jw_tool/jwt_tool.py'
+
+# Update All Tools
+alias update="bash $HOME/tools/update_tools.sh"
+
+# Automatically Activate Virtual Environment
+export VENV_PATH="$HOME/tools/path/to/venv"
+function auto_activate_venv() {
+    if [ -e "$VENV_PATH/bin/activate" ]; then
+        source "$VENV_PATH/bin/activate"
+    fi
+}
+
+export PROMPT_COMMAND="activate"
+
+# One-Liner: Quick Asset Discovery and Scan
+alias quickscan="subfinder -d $1 | httpx -silent | nuclei -t ~/nuclei-templates -o results.txt"
+
+# Bounty One-Liners with Custom Tools
+alias auto_bounty="all_recon $1 && nuclei_scan $1 && sqlhunt $1 && xsshunt $1 && dirbrute $1"
+alias auto_recon="all_recon $1 && quickscan $1"
+alias auto_js_analysis="findjs $1 && cat secrets.txt"
+alias auto_lfi="fuzz_lfi $1"
+
+
+# ---- Eza (better ls) -----
+
+# eza (better `ls`)
+alias l="eza --icons"
+alias ls="eza --icons"
+alias ll="eza -lg --icons"
+alias la="eza -lag --icons"
+alias lt="eza -lTg --icons"
+alias lt1="eza -lTg --level=1 --icons"
+alias lt2="eza -lTg --level=2 --icons"
+alias lt3="eza -lTg --level=3 --icons"
+alias lta="eza -lTag --icons"
+alias lta1="eza -lTag --level=1 --icons"
+alias lta2="eza -lTag --level=2 --icons"
+alias lta3="eza -lTag --level=3 --icons"
+# -----------------------------------------------------------------------------------------------
+# Cleanup and Organization
+# - Removed duplicates
+# - Consolidated similar aliases and functions
+# - Organized PATH setup, aliases, and functions for easy navigation
+# -----------------------------------------------------------------------------------------------
+
+
+# Generated for pdtm. Do not edit.
+export PATH=$PATH:/Users/anom/.pdtm/go/bin
+
+source /usr/local/share/powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# history setup
+HISTFILE=$HOME/.zhistory
+SAVEHIST=1000
+HISTSIZE=999
+setopt share_history
+setopt hist_expire_dups_first
+setopt hist_ignore_dups
+setopt hist_verify
+# completion using arrow keys (based on history)
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
+# ---- Zoxide (better cd) ----
+eval "$(zoxide init zsh)"
+alias cd="z"
+# ---- FZF -----
+
+# Set up fzf key bindings and fuzzy completion
+eval "$(fzf --zsh)"
+# -- Use fd instead of fzf --
+
+export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --exclude .git . "$1"
+}
+
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type=d --hidden --exclude .git . "$1"
+}
+
+# --- setup fzf theme ---
+fg="#CBE0F0"
+bg="#011628"
+bg_highlight="#143652"
+purple="#B388FF"
+blue="#06BCE4"
+cyan="#2CF9ED"
+
+export FZF_DEFAULT_OPTS="--color=fg:${fg},bg:${bg},hl:${purple},fg+:${fg},bg+:${bg_highlight},hl+:${purple},info:${blue},prompt:${cyan},pointer:${cyan},marker:${cyan},spinner:${cyan},header:${cyan}"
+# ----- Bat (better cat) -----
+
+export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always --line-range :500 {}'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+
+# Advanced customization of fzf options via _fzf_comprun function
+# - The first argument to the function is the name of the command.
+# - You should make sure to pass the rest of the arguments to fzf.
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+    export|unset) fzf --preview "eval 'echo $'{}"         "$@" ;;
+    ssh)          fzf --preview 'dig {}'                   "$@" ;;
+    *)            fzf --preview "bat -n --color=always --line-range :500 {}" "$@" ;;
+  esac
+}
+show_file_or_dir_preview="if [ -d {} ]; then eza --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi"
+
+export FZF_CTRL_T_OPTS="--preview '$show_file_or_dir_preview'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+
+# Advanced customization of fzf options via _fzf_comprun function
+# - The first argument to the function is the name of the command.
+# - You should make sure to pass the rest of the arguments to fzf.
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+    export|unset) fzf --preview "eval 'echo ${}'"         "$@" ;;
+    ssh)          fzf --preview 'dig {}'                   "$@" ;;
+    *)            fzf --preview "$show_file_or_dir_preview" "$@" ;;
+  esac
+}
+# ---- Eza (better ls) -----
+eval "$(starship init zsh)"
+
+# thefuck alias
+eval $(thefuck --alias)
+eval $(thefuck --alias fk)    
+source ~/fzf-git.sh/fzf-git.sh
+# zsh-autosuggestions
+source /usr/local/opt/zsh-autosuggestions/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# zsh-syntax-highlighting
+source /usr/local/opt/zsh-syntax-highlighting/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
