@@ -8,8 +8,8 @@
 #  3. Replaces ~/.zshrc with a custom config that includes bug bounty aliases & functions.
 #
 # Usage:
-#   chmod +x bug_bounty_vm_setup.sh
-#   ./bug_bounty_vm_setup.sh
+#   chmod +x 2.sh
+#   ./2.sh
 #
 # Recommended to run on a fresh Kali VM or Debian-based VM as a template.
 #
